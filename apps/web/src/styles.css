@@ -225,3 +225,11 @@ main { max-width: 1440px; margin: 0 auto; padding: 18px 28px 64px; }
   .ideas-hero { min-height: 420px; }
   .ideas-hero ul { flex-wrap: wrap; }
 }
+
+/* ---------- start page ---------- */
+.start-hero { display: grid; grid-template-columns: 1fr 1.1fr; gap: 32px; align-items: center; margin: 14px 0 0; }
+.start-hero h1 { margin: 10px 0 12px; }
+.start-hero-img { width: 100%; height: auto; border-radius: 14px; display: block; box-shadow: 0 6px 22px rgba(0, 0, 0, .18); }
+.start-how { margin-top: 48px; }
+.start-how > img { width: 100%; height: auto; border-radius: 14px; display: block; }
+@media (max-width: 900px) { .start-hero { grid-template-columns: 1fr; } }

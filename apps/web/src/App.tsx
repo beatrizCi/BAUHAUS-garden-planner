@@ -8,14 +8,18 @@ import { Planner } from './components/Planner';
 import { SidePanels } from './components/SidePanels';
 import { ProductSlider } from './components/ProductSlider';
 import { CartDrawer, PlusCardModal, ServiceSection } from './components/Commerce';
+import { StartPage } from './components/StartPage';
 import { IdeasPage } from './components/Categories';
 import { Toast } from './components/Toast';
+
+type View = 'start' | 'planer' | 'ideen';
+const viewFor = (h: string): View => (h === '#tipps-ideen' ? 'ideen' : h === '' || h === '#' || h === '#start' ? 'start' : 'planer');
 
 export default function App() {
   const [query, setQuery] = useState('');
   const [cartOpen, setCartOpen] = useState(false);
   const [plusOpen, setPlusOpen] = useState(false);
-  const [view, setView] = useState<'planer' | 'ideen'>(location.hash === '#tipps-ideen' ? 'ideen' : 'planer');
+  const [view, setView] = useState<View>(viewFor(location.hash));
   const { setProducts, notify } = useGarden.getState();
 
   useEffect(() => {
@@ -27,8 +31,9 @@ export default function App() {
   useEffect(() => {
     const onHash = () => {
       const h = location.hash;
-      setView(h === '#tipps-ideen' ? 'ideen' : 'planer');
-      if (h && h !== '#tipps-ideen') requestAnimationFrame(() => document.getElementById(h.slice(1))?.scrollIntoView());
+      setView(viewFor(h));
+      window.scrollTo(0, 0);
+      if (viewFor(h) === 'planer' && h !== '#planer') requestAnimationFrame(() => document.getElementById(h.slice(1))?.scrollIntoView());
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -38,8 +43,8 @@ export default function App() {
     <>
       <Header active={view} query={query} onQuery={setQuery} onCart={() => setCartOpen(true)} onPlus={() => setPlusOpen(true)} />
       <main>
-        {view === 'ideen' ? <IdeasPage /> : (<>
-        <nav className="crumbs" aria-label="Brotkrumen"><a href="/">Start</a> / <a href="#produkte">Produkte</a> / <a href="#produkte">Garten &amp; Freizeit</a> / <span>Garten-Planer</span></nav>
+        {view === 'start' ? <StartPage /> : view === 'ideen' ? <IdeasPage /> : (<>
+        <nav className="crumbs" aria-label="Brotkrumen"><a href="#start">Start</a> / <span>Garten-Planer</span></nav>
         <h1>Garten-Planer</h1>
         <p className="lede">Garten fotografieren, Produkte in echter Größe platzieren, in 3D und AR ansehen, alles direkt in den Warenkorb legen.</p>
         <div className="workspace">

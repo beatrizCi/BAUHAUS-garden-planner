@@ -1,7 +1,7 @@
 import { useGarden } from '../store';
 import { num } from '../lib/format';
 
-export function Header({ active, query, onQuery, onCart, onPlus }: { active: 'planer' | 'ideen'; query: string; onQuery: (q: string) => void; onCart: () => void; onPlus: () => void }) {
+export function Header({ active, query, onQuery, onCart, onPlus }: { active: 'start' | 'planer' | 'ideen'; query: string; onQuery: (q: string) => void; onCart: () => void; onPlus: () => void }) {
   const count = useGarden((s) => s.cart.length);
   const card = useGarden((s) => s.plusCard);
   return (
@@ -9,7 +9,7 @@ export function Header({ active, query, onQuery, onCart, onPlus }: { active: 'pl
       <div className="top-in">
         <div className="bar">
           {/* Replace with the official BAUHAUS logo SVG */}
-          <a className="logo" href="/" aria-label="BAUHAUS Startseite">
+          <a className="logo" href="#start" aria-label="BAUHAUS Startseite">
             <svg width="42" height="42" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 22 22 6l18 16v18H4z" fill="#fff" /><path d="M15 40V27h14v13" fill="#D9342B" /></svg>
             <span className="logo-mark"><span className="wordmark">BAUHAUS</span><span className="tagline">Wenn's gut werden muss.</span></span>
           </a>
@@ -21,6 +21,7 @@ export function Header({ active, query, onQuery, onCart, onPlus }: { active: 'pl
           <div className="store"><div><b>BAUHAUS Mannheim-Waldhof</b><span>Heute bis 20:00 Uhr</span></div></div>
         </div>
         <nav className="nav" aria-label="Hauptnavigation">
+          <a href="#start" aria-current={active === 'start' ? 'page' : undefined}>Start</a>
           <a href="#planer" aria-current={active === 'planer' ? 'page' : undefined}>Garten-Planer</a>
           <a href="#tipps-ideen" aria-current={active === 'ideen' ? 'page' : undefined}>Tipps &amp; Ideen</a>
           <a href="#produkte">Angebote</a>

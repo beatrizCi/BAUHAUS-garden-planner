@@ -23,7 +23,7 @@ export const CATEGORIES = [
 export function IdeasPage() {
   return (
     <>
-      <nav className="crumbs" aria-label="Brotkrumen"><a href="#planer">Start</a> / <span>Tipps &amp; Ideen</span> / <span>Garten &amp; Balkon</span></nav>
+      <nav className="crumbs" aria-label="Brotkrumen"><a href="#start">Start</a> / <span>Tipps &amp; Ideen</span> / <span>Garten &amp; Balkon</span></nav>
       <section className="ideas-hero">
         <div className="ideas-hero-img"><img src="/categories/hero.png" alt="" /></div>
         <div className="ideas-hero-txt">
