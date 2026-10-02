@@ -1,0 +1,28 @@
+[
+  {
+    "id": "r27766541",
+    "sku": "27766541",
+    "name": "SUNFUN Diana Gartenbank",
+    "category": "Gartenmöbel",
+    "price": 0,
+    "kind": "object",
+    "colors": [{ "name": "TODO Farbe", "hex": "#8C8F93" }],
+    "dimensions": { "w": 0, "h": 0, "d": 0 },
+    "keywords": ["gartenbank", "bank", "sunfun", "diana"],
+    "imageUrl": "/products/27766541.png",
+    "sourceUrl": "https://www.bauhaus.info/gartenbaenke/sunfun-diana-gartenbank/p/27766541"
+  },
+  {
+    "id": "r33092447",
+    "sku": "33092447",
+    "name": "SUNFUN Gartentisch",
+    "category": "Gartenmöbel",
+    "price": 0,
+    "kind": "object",
+    "colors": [{ "name": "TODO Farbe", "hex": "#3B3D40" }],
+    "dimensions": { "w": 0, "h": 0, "d": 0 },
+    "keywords": ["gartentisch", "tisch", "sunfun", "gestell"],
+    "imageUrl": "/products/33092447.png",
+    "sourceUrl": "https://www.bauhaus.info/gartentischgestelle/sunfun-gartentisch/p/33092447"
+  }
+]

@@ -1,4 +1,4 @@
-import { Box3, Group, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry, Vector3 } from 'three';
+import { Box3, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, SRGBColorSpace, TextureLoader, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { PlacedItem, Product } from '../types';
 import { cloneWithVariant } from '../three/variant';
@@ -31,6 +31,13 @@ export async function buildLayout(items: PlacedItem[], products: Product[]): Pro
       obj = new Group(); obj.add(m);
     } else if (p.modelUrl) {
       obj = cloneWithVariant(await load(p.modelUrl), hex);
+    } else if (p.imageUrl) {
+      // photo cut-out: a flat upright card at real size (turned toward the viewer by the AR session if needed)
+      const tex = await new TextureLoader().loadAsync(p.imageUrl);
+      tex.colorSpace = SRGBColorSpace;
+      const card = new Mesh(new PlaneGeometry(p.dimensions.w, p.dimensions.h), new MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.05, side: DoubleSide }));
+      card.position.y = p.dimensions.h / 2;
+      obj = new Group(); obj.add(card);
     } else continue;
     obj.position.set(...it.position);
     obj.rotation.y = (it.rotationY * Math.PI) / 180;

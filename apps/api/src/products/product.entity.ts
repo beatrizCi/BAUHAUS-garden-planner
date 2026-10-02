@@ -16,6 +16,9 @@ export class ProductEntity {
   @Column() kind: 'object' | 'surface';
   @Column('simple-json') colors: ProductColor[];
   @Column({ type: 'varchar', nullable: true }) modelUrl: string | null;
+  /** Product photo (transparent PNG). Without a 3D model it is shown as an upright cut-out at real size. */
+  @Column({ type: 'varchar', nullable: true }) imageUrl?: string | null;
+  @Column({ type: 'varchar', nullable: true }) sourceUrl?: string | null;
   @Column({ type: 'varchar', nullable: true }) material: 'tiles' | 'lawn' | 'gravel' | 'deck' | null;
   /** Real-world size in meters; for surfaces the default patch size. */
   @Column('simple-json') dimensions: Dimensions;

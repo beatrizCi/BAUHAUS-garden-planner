@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductEntity } from './product.entity';
 import { CATALOG } from './catalog';
+import { realCatalog } from './real-catalog';
 
 export interface ProductQuery { category?: string; color?: string; q?: string }
 
@@ -16,6 +17,9 @@ export class ProductsService implements OnApplicationBootstrap {
       await this.repo.save(CATALOG.map((p) => this.repo.create(p)));
       this.log.log(`Seeded ${CATALOG.length} demo products`);
     }
+    // real products are upserted on every start so edits to real-products.json show up without reseeding
+    const real = realCatalog();
+    if (real.length) { await this.repo.save(real.map((p) => this.repo.create(p))); this.log.log(`Upserted ${real.length} real products`); }
   }
 
   async findAll({ category, color, q }: ProductQuery) {

@@ -1,5 +1,5 @@
 import { Canvas, ThreeEvent, useThree } from '@react-three/fiber';
-import { Html, Line, OrbitControls, TransformControls, useGLTF, useTexture } from '@react-three/drei';
+import { Billboard, Html, Line, OrbitControls, TransformControls, useGLTF, useTexture } from '@react-three/drei';
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Object3D, PerspectiveCamera, Plane, SRGBColorSpace, Vector3 } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -192,9 +192,24 @@ function ItemNode({ item, order }: { item: PlacedItem; order: number }) {
       onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = useGarden.getState().tool === 'move' ? 'grab' : 'pointer'; }}
       onPointerOut={() => { document.body.style.cursor = ''; }}
     >
-      {product.kind === 'surface' ? <SurfacePatch product={product} color={item.color} order={order} /> : <GltfModel product={product} color={item.color} />}
+      {product.kind === 'surface' ? <SurfacePatch product={product} color={item.color} order={order} /> : product.modelUrl ? <GltfModel product={product} color={item.color} /> : product.imageUrl ? <Cutout product={product} /> : null}
       {selected && !capturing && <SelectionMarker product={product} />}
     </group>
+  );
+}
+
+/** Real product photo as an upright cut-out at real size; it turns toward the camera around the vertical axis only. */
+function Cutout({ product }: { product: Product }) {
+  const tex = useTexture(product.imageUrl!);
+  const { w, h } = product.dimensions;
+  useLayoutEffect(() => { tex.colorSpace = SRGBColorSpace; tex.anisotropy = 8; tex.needsUpdate = true; }, [tex]);
+  return (
+    <Billboard lockX lockZ position-y={h / 2}>
+      <mesh castShadow={false}>
+        <planeGeometry args={[w, h]} />
+        <meshBasicMaterial map={tex} transparent alphaTest={0.05} toneMapped={false} />
+      </mesh>
+    </Billboard>
   );
 }
 

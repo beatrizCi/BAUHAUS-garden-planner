@@ -10,6 +10,9 @@ export interface Product {
   kind: 'object' | 'surface';
   colors: ProductColor[];
   modelUrl: string | null;
+  /** Real product photo (transparent PNG); shown as an upright cut-out when there is no 3D model. */
+  imageUrl?: string | null;
+  sourceUrl?: string | null;
   material: 'tiles' | 'lawn' | 'gravel' | 'deck' | null;
   dimensions: { w: number; h: number; d: number };
   keywords: string[];
