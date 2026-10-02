@@ -1,7 +1,7 @@
 import { useGarden } from '../store';
 import { num } from '../lib/format';
 
-export function Header({ query, onQuery, onCart, onPlus }: { query: string; onQuery: (q: string) => void; onCart: () => void; onPlus: () => void }) {
+export function Header({ active, query, onQuery, onCart, onPlus }: { active: 'planer' | 'ideen'; query: string; onQuery: (q: string) => void; onCart: () => void; onPlus: () => void }) {
   const count = useGarden((s) => s.cart.length);
   const card = useGarden((s) => s.plusCard);
   return (
@@ -21,8 +21,8 @@ export function Header({ query, onQuery, onCart, onPlus }: { query: string; onQu
           <div className="store"><div><b>BAUHAUS Mannheim-Waldhof</b><span>Heute bis 20:00 Uhr</span></div></div>
         </div>
         <nav className="nav" aria-label="Hauptnavigation">
-          <a href="#produkte">Produkte</a>
-          <a href="#planer">Tipps &amp; Ideen</a>
+          <a href="#planer" aria-current={active === 'planer' ? 'page' : undefined}>Garten-Planer</a>
+          <a href="#tipps-ideen" aria-current={active === 'ideen' ? 'page' : undefined}>Tipps &amp; Ideen</a>
           <a href="#produkte">Angebote</a>
           <a href="#service">Service &amp; Beratung</a>
           <span className="spacer" />
