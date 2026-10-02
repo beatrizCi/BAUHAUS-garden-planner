@@ -61,21 +61,32 @@ Rules: 3 to 6 suggestions. Only on walkable ground visible in the photo, never i
     return res.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
   }
 
-  /** Free-tier friendly fallback (Google AI Studio key). Plain REST, no extra dependency. */
+  /** Free-tier friendly fallback (Google AI Studio key). Plain REST, no extra dependency. Tries several models because free-tier models are often busy or retired. */
   private async askGemini(system: string, prompt: string, jpeg: Buffer): Promise<string> {
-    const model = process.env.GEMINI_TEXT_MODEL ?? 'gemini-2.5-flash';
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: 'user', parts: [{ inlineData: { mimeType: 'image/jpeg', data: jpeg.toString('base64') } }, { text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4096 },
-      }),
+    const models = (process.env.GEMINI_TEXT_MODEL ?? 'gemini-3.8-flash,gemini-3.5-flash,gemini-flash-latest,gemini-3.1-flash-lite').split(',').map((m) => m.trim()).filter(Boolean);
+    const body = JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: 'user', parts: [{ inlineData: { mimeType: 'image/jpeg', data: jpeg.toString('base64') } }, { text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4096 },
     });
-    if (res.status === 429) throw new ServiceUnavailableException('Gemini-Limit erreicht (kostenloses Kontingent). Bitte in einer Minute erneut versuchen.');
-    if (!res.ok) throw new ServiceUnavailableException(`Gemini-Fehler ${res.status}. Ist GEMINI_API_KEY gültig?`);
-    const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-    return data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
+    let last = '';
+    for (const model of models) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! },
+        body,
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+        const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
+        if (text) return text;
+        last = `${model}: leere Antwort`;
+        continue;
+      }
+      const err = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
+      last = `${model}: ${res.status} ${err?.error?.message ?? ''}`.trim();
+      if (res.status === 400 || res.status === 401 || res.status === 403) break; // bad request or key: other models will not help
+    }
+    throw new ServiceUnavailableException(`Gemini nicht verfügbar (${last.slice(0, 160)}). Bitte später erneut versuchen.`);
   }
 }
