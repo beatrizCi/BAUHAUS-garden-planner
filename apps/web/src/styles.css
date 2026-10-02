@@ -230,6 +230,36 @@ main { max-width: 1440px; margin: 0 auto; padding: 18px 28px 64px; }
 .start-hero { display: grid; grid-template-columns: 1fr 1.1fr; gap: 32px; align-items: center; margin: 14px 0 0; }
 .start-hero h1 { margin: 10px 0 12px; }
 .start-hero-img { width: 100%; height: auto; border-radius: 14px; display: block; box-shadow: 0 6px 22px rgba(0, 0, 0, .18); }
-.start-how { margin-top: 48px; }
-.start-how > img { width: 100%; height: auto; border-radius: 14px; display: block; }
 @media (max-width: 900px) { .start-hero { grid-template-columns: 1fr; } }
+
+/* step explorer */
+.explorer { --tan: #a08660; margin-top: 56px; display: grid; grid-template-columns: 300px 1fr 150px; gap: 28px; align-items: center; min-height: 520px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 28px 0; }
+.ex-info h3 { font-size: 30px; margin: 0 0 10px; }
+.ex-info .pill-cta { margin-top: 22px; }
+.ex-kicker { font-style: italic; font-family: Georgia, serif; color: var(--tan); margin: 22px 0 6px; font-size: 18px; }
+.ex-stage { position: relative; height: 480px; border-radius: 14px; overflow: hidden; background: var(--stage); }
+.ex-slide { position: absolute; inset: 0; }
+.ex-bg { position: absolute; inset: -20px; width: calc(100% + 40px); height: calc(100% + 40px); object-fit: cover; filter: blur(22px) brightness(.8); }
+.ex-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.ex-sweep { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(217, 52, 43, .35) 50%, transparent); pointer-events: none; }
+.ex-picker { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ex-arrow { background: none; border: 0; padding: 4px 18px; color: var(--red); }
+.ex-arrow svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.ex-arrow:disabled { opacity: .25; cursor: default; }
+.ex-nums { position: relative; width: 110px; }
+.ex-num { position: relative; width: 110px; height: 96px; background: none; border: 0; display: grid; place-items: center; font-family: var(--cond); font-weight: 700; font-size: 54px; color: var(--tan); transition: color .25s, transform .25s; }
+.ex-num span { position: relative; z-index: 1; }
+.ex-num:hover { color: var(--red); }
+.ex-num.on { color: var(--red); }
+.ex-num.on span { display: inline-block; transform: scale(1.4); }
+.ex-box { position: absolute; top: 0; left: 0; width: 110px; height: 96px; border: 1.5px solid var(--red); background: color-mix(in srgb, var(--red) 6%, transparent); }
+@media (max-width: 900px) {
+  .explorer { grid-template-columns: 1fr; }
+  .ex-stage { height: 320px; order: 2; }
+  .ex-picker { flex-direction: row; order: 3; justify-content: center; }
+  .ex-arrow svg { transform: rotate(-90deg); }
+  .ex-nums { display: flex; width: auto; }
+  .ex-box { display: none; }
+  .ex-num { width: 56px; height: 64px; font-size: 32px; }
+  .ex-num.on { box-shadow: inset 0 0 0 1.5px var(--red); }
+}
