@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import real from './real-products.json';
+import photos from './photo-products.json';
 import { ProductEntity } from './product.entity';
 
 type RealProduct = Pick<ProductEntity, 'id' | 'sku' | 'name' | 'category' | 'price' | 'kind' | 'colors' | 'dimensions' | 'keywords'> & { imageUrl: string; sourceUrl?: string };
@@ -11,12 +12,13 @@ const log = new Logger('RealCatalog');
 const PUBLIC_DIR = process.env.WEB_PUBLIC_DIR ?? join(process.cwd(), '../web/public');
 
 /**
- * Real BAUHAUS products from real-products.json. An entry is only used once it is complete
+ * Photo products: photo-products.json (own cut-out photos, demo prices and sizes, may replace a 3D demo product by id)
+ * and real-products.json (real BAUHAUS products). An entry is only used once it is complete
  * (price > 0, real dimensions, a colour and its photo file exists), so half-filled templates never reach customers.
  */
 export function realCatalog(): Partial<ProductEntity>[] {
   const ok: Partial<ProductEntity>[] = [];
-  for (const p of real as RealProduct[]) {
+  for (const p of [...(photos as RealProduct[]), ...(real as RealProduct[])]) {
     const { w, h, d } = p.dimensions;
     const problems = [
       !(p.price > 0) && 'price',

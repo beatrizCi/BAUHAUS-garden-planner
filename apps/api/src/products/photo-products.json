@@ -1,0 +1,17 @@
+[
+  { "id": "p02", "sku": "DEMO-P02", "name": "Holz-Gartentisch rustikal, Bockgestell", "category": "Gartenmöbel", "price": 349, "kind": "object",
+    "colors": [{ "name": "Holz natur", "hex": "#8a6f55" }], "dimensions": { "w": 1.8, "h": 1.04, "d": 0.9 },
+    "keywords": ["tisch", "gartentisch", "holz", "bockgestell", "table"], "imageUrl": "/products/holztisch.png" },
+  { "id": "p22", "sku": "DEMO-P22", "name": "Holz-Gartensessel mit Armlehnen", "category": "Gartenmöbel", "price": 129, "kind": "object",
+    "colors": [{ "name": "Holz natur", "hex": "#8a6f55" }], "dimensions": { "w": 0.65, "h": 0.77, "d": 0.6 },
+    "keywords": ["sessel", "stuhl", "gartenstuhl", "holz", "chair"], "imageUrl": "/products/holzsessel.png" },
+  { "id": "p23", "sku": "DEMO-P23", "name": "Stiefmütterchen im Terrakottatopf", "category": "Pflanzen", "price": 7.99, "kind": "object",
+    "colors": [{ "name": "Bunt", "hex": "#b86a3e" }], "dimensions": { "w": 0.35, "h": 0.35, "d": 0.35 },
+    "keywords": ["stiefmütterchen", "blumen", "topf", "pflanze", "viola"], "imageUrl": "/products/stiefmuetterchen-topf.png" },
+  { "id": "p24", "sku": "DEMO-P24", "name": "Terrakotta-Pflanzkübel eckig mit Immergrün", "category": "Pflanzgefäße", "price": 59.99, "kind": "object",
+    "colors": [{ "name": "Terrakotta", "hex": "#c2643f" }], "dimensions": { "w": 0.5, "h": 0.6, "d": 0.5 },
+    "keywords": ["kübel", "pflanzkübel", "terrakotta", "eckig", "strauch"], "imageUrl": "/products/pflanzkuebel-eckig.png" },
+  { "id": "p25", "sku": "DEMO-P25", "name": "Terrakotta-Kübel rund mit Strauch", "category": "Pflanzgefäße", "price": 79.99, "kind": "object",
+    "colors": [{ "name": "Terrakotta", "hex": "#c2643f" }], "dimensions": { "w": 0.7, "h": 0.84, "d": 0.7 },
+    "keywords": ["kübel", "pflanzkübel", "terrakotta", "rund", "strauch", "buchs"], "imageUrl": "/products/pflanzkuebel-rund.png" }
+]
