@@ -1,0 +1,15 @@
+# Postgres for local development. Start: docker compose up -d db
+# then set DB_TYPE=postgres and DATABASE_URL in .env
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: garten
+      POSTGRES_PASSWORD: garten
+      POSTGRES_DB: garten
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
