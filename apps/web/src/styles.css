@@ -263,3 +263,25 @@ main { max-width: 1440px; margin: 0 auto; padding: 18px 28px 64px; }
   .ex-num { width: 56px; height: 64px; font-size: 32px; }
   .ex-num.on { box-shadow: inset 0 0 0 1.5px var(--red); }
 }
+
+/* seasons */
+.seasons { margin-top: 56px; }
+.seasons-tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--muted-bg); border-radius: 999px; margin: 14px 0 20px; }
+.seasons-tabs button { position: relative; border: 0; background: none; padding: 9px 22px; border-radius: 999px; font-family: var(--cond); font-weight: 700; font-size: 20px; color: var(--ink-2); }
+.seasons-tabs button { transition: background .3s, color .3s; }
+.seasons-tabs button.on { color: #fff; background: var(--accent); }
+.seasons-body { display: grid; grid-template-columns: 1.6fr 1fr; gap: 28px; align-items: stretch; }
+.seasons-stage { position: relative; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; transition: background .6s; }
+.seasons-img { position: absolute; inset: 0; display: grid; place-items: center; }
+.seasons-img img { width: 100%; height: 100%; object-fit: cover; }
+.seasons-ph { color: #fff; font-family: var(--cond); font-weight: 700; font-size: 64px; text-align: center; text-shadow: 0 2px 12px rgba(0, 0, 0, .3); }
+.seasons-ph small { display: block; font-family: var(--body); font-weight: 400; font-size: 13px; opacity: .85; }
+.seasons-tag { position: absolute; left: 14px; top: 14px; background: var(--accent); color: #fff; font-family: var(--cond); font-weight: 700; padding: 4px 14px; border-radius: 999px; font-size: 18px; transition: background .4s; }
+.seasons-info h3 { font-size: 34px; color: var(--accent); }
+.seasons-info h4 { font-family: var(--cond); font-size: 20px; margin: 18px 0 6px; }
+.seasons-info dl { margin: 0; }
+.seasons-info dt { font-weight: 700; margin-top: 10px; }
+.seasons-info dd { margin: 2px 0 0; color: var(--ink-2); }
+.seasons-products { list-style: none; margin: 0 0 20px; padding: 0; }
+.seasons-products li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 900px) { .seasons-body { grid-template-columns: 1fr; } .seasons-ph { font-size: 44px; } }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { SeasonSection } from './Seasons';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 const STEPS = [
@@ -91,6 +92,7 @@ export function StartPage() {
       </section>
 
       <StepExplorer />
+      <SeasonSection />
 
       <section className="service start-cta">
         <div>
