@@ -14,7 +14,7 @@ export class AiService {
   constructor(private readonly products: ProductsService) {}
 
   async suggest(dto: SuggestDto): Promise<SuggestResult> {
-    if (!process.env.ANTHROPIC_API_KEY) throw new ServiceUnavailableException('ANTHROPIC_API_KEY fehlt: KI-Vorschläge sind deaktiviert.');
+    if (!process.env.ANTHROPIC_API_KEY && !process.env.GEMINI_API_KEY) throw new ServiceUnavailableException('Weder ANTHROPIC_API_KEY noch GEMINI_API_KEY gesetzt: KI-Vorschläge sind deaktiviert.');
     let photo: Buffer;
     try { photo = await readFile(uploadPathFromUrl(dto.imageUrl)); } catch { throw new BadRequestException('Foto nicht gefunden'); }
     const jpeg = await sharp(photo).resize({ width: 1280, height: 1280, fit: 'inside' }).jpeg({ quality: 85 }).toBuffer();
@@ -38,22 +38,44 @@ Reply with JSON only:
 {"analysis":"2-3 sentences in German: size, ground, light, style, what is missing","style":"short style name in German","suggestions":[{"productId":"p01","color":"Anthrazit","x":-1.2,"z":5.5,"rotationY":0,"reason":"one short German sentence"}]}
 Rules: 3 to 6 suggestions. Only on walkable ground visible in the photo, never inside walls, hedges or the house. Respect real sizes (see catalog) so items don't overlap. Surfaces (kind=surface) are placed with their centre at x/z. rotationY in degrees.`;
 
-    const client = new Anthropic();
-    const res = await client.messages.create({
-      model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5-5',
-      max_tokens: 1500,
-      system: 'Reply with a single JSON object only. No prose, no Markdown fences.',
-      messages: [{ role: 'user', content: [
-        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: jpeg.toString('base64') } },
-        { type: 'text', text: prompt },
-      ] }],
-    });
-    const text = res.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
+    const system = 'Reply with a single JSON object only. No prose, no Markdown fences.';
+    const text = process.env.ANTHROPIC_API_KEY ? await this.askClaude(system, prompt, jpeg) : await this.askGemini(system, prompt, jpeg);
     const json = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
     let parsed: SuggestResult;
     try { parsed = JSON.parse(json); } catch { throw new ServiceUnavailableException('Die KI-Antwort war unvollständig. Bitte erneut versuchen.'); }
     const ids = new Set(catalog.map((p) => p.id));
     parsed.suggestions = (parsed.suggestions ?? []).filter((s) => ids.has(s.productId));
     return parsed;
+  }
+
+  private async askClaude(system: string, prompt: string, jpeg: Buffer): Promise<string> {
+    const res = await new Anthropic().messages.create({
+      model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5-5',
+      max_tokens: 1500,
+      system,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: jpeg.toString('base64') } },
+        { type: 'text', text: prompt },
+      ] }],
+    });
+    return res.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
+  }
+
+  /** Free-tier friendly fallback (Google AI Studio key). Plain REST, no extra dependency. */
+  private async askGemini(system: string, prompt: string, jpeg: Buffer): Promise<string> {
+    const model = process.env.GEMINI_TEXT_MODEL ?? 'gemini-2.5-flash';
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ inlineData: { mimeType: 'image/jpeg', data: jpeg.toString('base64') } }, { text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4096 },
+      }),
+    });
+    if (res.status === 429) throw new ServiceUnavailableException('Gemini-Limit erreicht (kostenloses Kontingent). Bitte in einer Minute erneut versuchen.');
+    if (!res.ok) throw new ServiceUnavailableException(`Gemini-Fehler ${res.status}. Ist GEMINI_API_KEY gültig?`);
+    const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+    return data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
   }
 }

@@ -9,7 +9,7 @@ export class HealthController {
       features: {
         segmentation: Boolean(process.env.HF_TOKEN),
         inpainting: process.env.GEMINI_API_KEY ? 'gemini' : process.env.HF_INPAINT_ENDPOINT ? 'hf-endpoint' : 'local',
-        suggestions: Boolean(process.env.ANTHROPIC_API_KEY),
+        suggestions: Boolean(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY),
       },
     };
   }
