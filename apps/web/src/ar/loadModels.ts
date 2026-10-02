@@ -1,8 +1,8 @@
-import { Box3, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, SRGBColorSpace, TextureLoader, Vector3 } from 'three';
+import { Box3, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, MirroredRepeatWrapping, Object3D, PlaneGeometry, SRGBColorSpace, TextureLoader, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { PlacedItem, Product } from '../types';
 import { cloneWithVariant } from '../three/variant';
-import { surfaceTexture, TILE_METERS } from '../three/surfaceTextures';
+import { PHOTO_TILE_METERS, surfaceTexture, TILE_METERS } from '../three/surfaceTextures';
 
 const loader = new GLTFLoader();
 const cache = new Map<string, Promise<Object3D>>();
@@ -22,7 +22,15 @@ export async function buildLayout(items: PlacedItem[], products: Product[]): Pro
     if (!p) continue;
     const hex = p.colors.find((c) => c.name === it.color)?.hex ?? p.colors[0].hex;
     let obj: Object3D;
-    if (p.kind === 'surface' && p.material) {
+    if (p.kind === 'surface' && p.imageUrl && !p.material) {
+      const tex = (await new TextureLoader().loadAsync(p.imageUrl)).clone();
+      tex.colorSpace = SRGBColorSpace; tex.wrapS = tex.wrapT = MirroredRepeatWrapping;
+      tex.repeat.set(p.dimensions.w / PHOTO_TILE_METERS, p.dimensions.d / PHOTO_TILE_METERS);
+      tex.needsUpdate = true;
+      const m = new Mesh(new PlaneGeometry(p.dimensions.w, p.dimensions.d), new MeshStandardMaterial({ map: tex, roughness: 0.7 }));
+      m.rotation.x = -Math.PI / 2; m.position.y = 0.003; m.receiveShadow = true;
+      obj = new Group(); obj.add(m);
+    } else if (p.kind === 'surface' && p.material) {
       const tex = surfaceTexture(p.material, hex).clone();
       tex.repeat.set(p.dimensions.w / TILE_METERS[p.material], p.dimensions.d / TILE_METERS[p.material]);
       tex.needsUpdate = true;

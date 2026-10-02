@@ -5,7 +5,7 @@ import real from './real-products.json';
 import photos from './photo-products.json';
 import { ProductEntity } from './product.entity';
 
-type RealProduct = Pick<ProductEntity, 'id' | 'sku' | 'name' | 'category' | 'price' | 'kind' | 'colors' | 'dimensions' | 'keywords'> & { imageUrl: string; sourceUrl?: string };
+type RealProduct = Pick<ProductEntity, 'id' | 'sku' | 'name' | 'category' | 'price' | 'kind' | 'colors' | 'dimensions' | 'keywords'> & { imageUrl: string; sourceUrl?: string; unit?: string };
 
 const log = new Logger('RealCatalog');
 /** Folder served by the web app (Vite public/). Overridable for deployments. */
@@ -27,7 +27,7 @@ export function realCatalog(): Partial<ProductEntity>[] {
       !existsSync(join(PUBLIC_DIR, p.imageUrl)) && `image ${p.imageUrl}`,
     ].filter(Boolean);
     if (problems.length) { log.warn(`${p.sku} ${p.name}: skipped, missing ${problems.join(', ')}`); continue; }
-    ok.push({ ...p, unit: null, material: null, modelUrl: null, inStock: true });
+    ok.push({ ...p, unit: p.unit ?? null, material: null, modelUrl: null, inStock: true });
   }
   return ok;
 }

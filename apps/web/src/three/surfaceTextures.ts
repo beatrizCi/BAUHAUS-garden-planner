@@ -67,3 +67,6 @@ export function surfaceTexture(material: NonNullable<Product['material']>, hex: 
   cache.set(key, tex);
   return tex;
 }
+
+/** A product photo used as floor texture repeats every this many meters (mirrored, so there are no hard seams). */
+export const PHOTO_TILE_METERS = 1.5;

@@ -1,14 +1,14 @@
 import { Canvas, ThreeEvent, useThree } from '@react-three/fiber';
 import { Billboard, Html, Line, OrbitControls, TransformControls, useGLTF, useTexture } from '@react-three/drei';
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Object3D, PerspectiveCamera, Plane, SRGBColorSpace, Vector3 } from 'three';
+import { MirroredRepeatWrapping, Object3D, PerspectiveCamera, Plane, SRGBColorSpace, Vector3 } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useGarden } from '../store';
 import type { PlacedItem, Product } from '../types';
 import { cameraPitch } from '../lib/format';
 import { renderRef } from '../lib/capture';
 import { cloneWithVariant } from './variant';
-import { surfaceTexture, TILE_METERS } from './surfaceTextures';
+import { PHOTO_TILE_METERS, surfaceTexture, TILE_METERS } from './surfaceTextures';
 import { ScanGrid } from './ScanGrid';
 
 const GROUND = new Plane(new Vector3(0, 1, 0), 0);
@@ -221,6 +221,29 @@ function GltfModel({ product, color }: { product: Product; color: string }) {
 }
 
 function SurfacePatch({ product, color, order }: { product: Product; color: string; order: number }) {
+  return product.imageUrl && !product.material ? <PhotoSurface product={product} order={order} /> : <ProceduralSurface product={product} color={color} order={order} />;
+}
+
+/** Floor made from a product photo (mirrored repeat). */
+function PhotoSurface({ product, order }: { product: Product; order: number }) {
+  const base = useTexture(product.imageUrl!);
+  const { w, d } = product.dimensions;
+  const tex = useMemo(() => {
+    const t = base.clone();
+    t.colorSpace = SRGBColorSpace; t.wrapS = t.wrapT = MirroredRepeatWrapping; t.anisotropy = 8;
+    t.repeat.set(w / PHOTO_TILE_METERS, d / PHOTO_TILE_METERS);
+    t.needsUpdate = true;
+    return t;
+  }, [base, w, d]);
+  return (
+    <mesh rotation-x={-Math.PI / 2} position-y={0.004 + order * 0.0004} receiveShadow renderOrder={order}>
+      <planeGeometry args={[w, d]} />
+      <meshStandardMaterial map={tex} roughness={0.7} polygonOffset polygonOffsetFactor={-1 - order} />
+    </mesh>
+  );
+}
+
+function ProceduralSurface({ product, color, order }: { product: Product; color: string; order: number }) {
   const hex = product.colors.find((c) => c.name === color)?.hex ?? product.colors[0].hex;
   const { w, d } = product.dimensions;
   const tex = useMemo(() => {
