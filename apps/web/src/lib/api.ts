@@ -44,6 +44,9 @@ export const api = {
   suggest: (imageUrl: string, calibration: Calibration, items: PlacedItem[], wishes?: string) =>
     req<{ analysis: string; style: string; suggestions: Suggestion[] }>('/ai/suggest', json('POST', { imageUrl, calibration, items, wishes })),
 
+  renovate: (imageUrl: string, style?: string, wishes?: string) =>
+    req<{ url: string; model: string }>('/ai/renovate', json('POST', { imageUrl, style, wishes })),
+
   serviceRequest: (data: { name: string; phone: string; preferredTime: string; note?: string; projectId?: string }) =>
     req<{ id: string }>('/service-requests', json('POST', data)),
 };

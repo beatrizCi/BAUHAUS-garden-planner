@@ -6,6 +6,8 @@ import { api } from '../lib/api';
 import { eur } from '../lib/format';
 import { brushMaskDataUrl, useRemoval } from '../lib/removal';
 import { ARButton } from '../ar/ARView';
+import { BeforeAfter } from './BeforeAfter';
+import { Modal } from './Overlay';
 
 const panel = { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -6 }, transition: { duration: 0.18 } };
 
@@ -19,6 +21,7 @@ export function SidePanels() {
         {tool === 'calibrate' && <motion.div key="cal" {...panel}><CalibrationPanel /></motion.div>}
         {tool === 'erase' && <motion.div key="erase" {...panel}><RemovalPanel /></motion.div>}
       </AnimatePresence>
+      <RenovatePanel />
       <SuggestionsPanel />
       <PlanSummary />
     </aside>
@@ -133,6 +136,48 @@ function RemovalPanel() {
           <button className="btn small ghost" onClick={() => setPhoto(project.originalPhotoUrl!, photoAspect, { keepOriginal: true })}>Originalfoto</button>
         )}
       </div>
+    </div>
+  );
+}
+
+const STYLES = ['modern und gepflegt', 'mediterran', 'naturnaher Garten', 'pflegeleicht', 'gemütlich mit viel Blumen'];
+
+/** AI renovation of the customer's own photo, shown in the before/after slider. */
+function RenovatePanel() {
+  const photo = useGarden((s) => s.project.photoUrl);
+  const original = useGarden((s) => s.project.originalPhotoUrl);
+  const notify = useGarden((s) => s.notify);
+  const [style, setStyle] = useState(STYLES[0]);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ before: string; after: string } | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const run = async () => {
+    const before = original ?? photo;
+    if (!before) { notify('Für die Neugestaltung brauchen Sie ein Foto.'); return; }
+    setBusy(true);
+    try {
+      const r = await api.renovate(before, style);
+      setResult({ before, after: r.url });
+      setOpen(true);
+    } catch (e) { notify((e as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="card">
+      <h3>Garten neu gestalten</h3>
+      <p className="muted" style={{ margin: 0 }}>Die KI zeigt Ihren Garten renoviert. Regler nach links ziehen für den neuen Garten.</p>
+      <label className="lbl" htmlFor="rn-style">Stil</label>
+      <select id="rn-style" className="field" value={style} onChange={(e) => setStyle(e.target.value)}>{STYLES.map((x) => <option key={x}>{x}</option>)}</select>
+      <div className="row">
+        <button className="btn" onClick={run} disabled={busy || !photo}>{busy ? 'Wird gestaltet … (bis 30 s)' : 'Neu gestalten'}</button>
+        {result && <button className="btn ghost" onClick={() => setOpen(true)}>Ergebnis ansehen</button>}
+      </div>
+      <Modal open={open} onClose={() => setOpen(false)} title="Vorher / Nachher" wide>
+        {result && <BeforeAfter before={result.before} after={result.after} />}
+        <p className="muted">KI-generierte Visualisierung, nur zur Inspiration. Der Plan im Planer bleibt unverändert.</p>
+      </Modal>
     </div>
   );
 }

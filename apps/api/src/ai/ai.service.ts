@@ -4,14 +4,23 @@ import { readFile } from 'node:fs/promises';
 import sharp from 'sharp';
 import { uploadPathFromUrl } from '../config/paths';
 import { ProductsService } from '../products/products.service';
-import { SuggestDto } from './ai.dto';
+import { UploadsService } from '../uploads/uploads.service';
+import { RenovateDto, SuggestDto } from './ai.dto';
 
 export interface Suggestion { productId: string; color: string; x: number; z: number; rotationY: number; reason: string }
 export interface SuggestResult { analysis: string; style: string; suggestions: Suggestion[] }
 
+/** Google SDK errors carry a JSON string; keep only code and a short message. */
+function briefError(e: unknown): string {
+  const m = (e as Error).message ?? String(e);
+  const code = /"code":\s*(\d+)/.exec(m)?.[1];
+  const quota = /quota/i.test(m) ? 'Kontingent erschöpft oder nicht im kostenlosen Tarif' : m.replace(/\s+/g, ' ').slice(0, 80);
+  return `${code ?? '?'} ${quota}`;
+}
+
 @Injectable()
 export class AiService {
-  constructor(private readonly products: ProductsService) {}
+  constructor(private readonly products: ProductsService, private readonly uploads: UploadsService) {}
 
   async suggest(dto: SuggestDto): Promise<SuggestResult> {
     if (!process.env.ANTHROPIC_API_KEY && !process.env.GEMINI_API_KEY) throw new ServiceUnavailableException('Weder ANTHROPIC_API_KEY noch GEMINI_API_KEY gesetzt: KI-Vorschläge sind deaktiviert.');
@@ -46,6 +55,37 @@ Rules: 3 to 6 suggestions. Only on walkable ground visible in the photo, never i
     const ids = new Set(catalog.map((p) => p.id));
     parsed.suggestions = (parsed.suggestions ?? []).filter((s) => ids.has(s.productId));
     return parsed;
+  }
+
+  /** Generates a renovated version of the customer's garden photo (same framing) for the before/after slider. */
+  async renovate(dto: RenovateDto): Promise<{ url: string; model: string }> {
+    if (!process.env.GEMINI_API_KEY) throw new ServiceUnavailableException('GEMINI_API_KEY fehlt: die Garten-Neugestaltung braucht einen Google-AI-Studio-Schlüssel.');
+    let photo: Buffer;
+    try { photo = await readFile(uploadPathFromUrl(dto.imageUrl)); } catch { throw new BadRequestException('Foto nicht gefunden'); }
+    const meta = await sharp(photo).metadata();
+    const jpeg = await sharp(photo).resize({ width: 1280, height: 1280, fit: 'inside' }).jpeg({ quality: 88 }).toBuffer();
+    const style = dto.style?.trim() || 'modern und gepflegt';
+    const prompt = `This is a photo of a customer's garden. Return the SAME photo, with identical camera position, framing, perspective, house, fences, walls and lighting, but renovated as a beautiful ${style} garden: new terrace paving or decking, a healthy lawn, tidy planted borders, a few quality garden furniture pieces and plants in suitable places. Do not move or change buildings or the horizon. Photorealistic, no text, no watermark, no people.${dto.wishes?.trim() ? ` Customer wishes: ${dto.wishes.trim()}` : ''}`;
+    const models = (process.env.GEMINI_RENOVATE_MODEL ?? 'gemini-3.1-flash-image,gemini-2.5-flash-image,gemini-3.1-flash-image-preview').split(',').map((m) => m.trim()).filter(Boolean);
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const errors: string[] = [];
+    for (const model of models) {
+      try {
+        const res = await ai.models.generateContent({
+          model,
+          contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { mimeType: 'image/jpeg', data: jpeg.toString('base64') } }] }],
+          config: { responseModalities: ['TEXT', 'IMAGE'] },
+        });
+        const part = res.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data);
+        if (!part?.inlineData?.data) { errors.push(`${model}: kein Bild erhalten`); continue; }
+        // match the original size exactly so the slider lines up
+        const out = await sharp(Buffer.from(part.inlineData.data, 'base64')).resize(meta.width, meta.height, { fit: 'cover' }).toBuffer();
+        const stored = await this.uploads.storeImage(out);
+        return { url: stored.url, model };
+      } catch (e) { errors.push(`${model}: ${briefError(e)}`); }
+    }
+    throw new ServiceUnavailableException(`Bild-KI nicht verfügbar (${errors.join(' | ').slice(0, 400)}). Bitte später erneut versuchen.`);
   }
 
   private async askClaude(system: string, prompt: string, jpeg: Buffer): Promise<string> {
