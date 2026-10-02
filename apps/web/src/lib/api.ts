@@ -11,6 +11,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new ApiError('Server nicht erreichbar. Läuft die API (npm run dev)?', 0);
   }
+  if (res.headers.get('content-type')?.includes('text/html')) throw new ApiError('API antwortet nicht (Proxy). Bitte „npm run dev“ im Projektordner neu starten.', 502);
   const body = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
   if (!res.ok) {
     const msg = Array.isArray(body?.message) ? body.message.join(', ') : body?.message;

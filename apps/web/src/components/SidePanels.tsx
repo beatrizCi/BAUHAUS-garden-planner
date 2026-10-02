@@ -196,10 +196,10 @@ function PlanSummary() {
   const { addToCart, select } = useGarden.getState();
   if (!items.length) return null;
   const lines = items.map((it) => {
-    const p = products.find((x) => x.id === it.productId)!;
+    const p = products.find((x) => x.id === it.productId);
     const qty = p?.kind === 'surface' ? surfaceArea(p, it) : 1;
     return { it, p, qty, total: p ? p.price * qty : 0 };
-  }).filter((l) => l.p);
+  }).filter((l): l is typeof l & { p: NonNullable<typeof l.p> } => !!l.p);
   const total = lines.reduce((s, l) => s + l.total, 0);
   return (
     <div className="card">

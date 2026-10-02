@@ -60,7 +60,7 @@ export const useGarden = create<GardenState>()(
   persist(
     (set, get) => ({
       products: [],
-      setProducts: (products) => set({ products }),
+      setProducts: (products) => set({ products: Array.isArray(products) ? products : [] }),
       product: (id) => get().products.find((p) => p.id === id),
 
       project: emptyProject(),
